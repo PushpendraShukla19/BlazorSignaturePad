@@ -1,0 +1,24 @@
+﻿@inject IJSRuntime JsRuntime
+@inject NavigationManager NavManager
+@inject StateContainer StateContainer
+
+@page "/Review"
+
+<PageTitle>Review</PageTitle>
+<EditForm Model="StateContainer.SignatureApproved">
+    <div class="row mb-3">
+        <div class="col-sm-6 col-md-3">
+            <label>Signed:</label><br />
+            <img src="@StateContainer.SignatureApproved.Signature">
+        </div>
+
+        <div class="col-sm-6 col-md-3">
+            <label>Dated:</label>
+            <InputDate @bind-Value="StateContainer.SignatureApproved.SignatureDate" class="form-control disabled" />
+        </div>
+    </div>
+</EditForm>
+
+@code {
+
+}

@@ -1,0 +1,84 @@
+﻿@inject IJSRuntime JsRuntime
+@inject NavigationManager NavManager
+@inject StateContainer StateContainer
+
+
+@page "/"
+
+<PageTitle>Index</PageTitle>
+
+<EditForm id="@signatureForm" Model="StateContainer.SignatureApproved" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <div class="row mb-5">
+        <div class="col-sm-6 col-md-3">
+            <label>Print Your Name:</label>
+            <InputText @bind-Value="StateContainer.SignatureApproved.PrintedName" class="form-control" />
+        </div>
+        <div class="col-sm-6 col-md-3">
+            <label>Signature Date:</label>
+            <InputDate @bind-Value="StateContainer.SignatureApproved.SignatureDate" class="form-control" />
+        </div>
+    </div>
+    <div class="row mb-2">
+        <div class="col-sm-12 col-md-6">
+            <label>Please Sign Below:</label><br />
+            <canvas id="signature-pad" class="signature-pad border" @ref="_canvas"></canvas>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-12 col-md-6">
+            <a id="clear-signature" class="btn btn-light border">Clear</a>
+        </div>
+    </div>
+</EditForm>
+
+
+<div class="row my-5 text-right">
+    <div class="col-sm-12 col-md-6">
+        <button type="submit" form="@signatureForm" class="btn btn-primary form-control">Submit</button>
+    </div>
+</div>
+
+
+@code {
+    public ElementReference _canvas;
+    private string signatureForm = "signatureForm";
+    private string saveSignature { get; set; }
+    private string noSignature { get; set; }
+    private string signatureAlert { get; set; }
+
+    private async Task<string> GetSignature()
+    {
+        return await JsRuntime.InvokeAsync<string>("getImageData", _canvas);
+    }
+
+    private async void HandleValidSubmit()
+    {
+        saveSignature = await GetSignature();
+        if (string.Equals(saveSignature, noSignature))
+        {
+            signatureAlert = "visible";
+            StateHasChanged();
+            return;
+        }
+
+        StateContainer.SignatureApproved.Signature = saveSignature;
+        NavManager.NavigateTo("/Review");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JsRuntime.InvokeAsync<string>("setSignature", _canvas);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (StateContainer.SignatureApproved == null)
+            StateContainer.SignatureApproved = new SignatureApproved();
+
+        //signatureAlert = "invisible";
+    }
+}
